@@ -30,8 +30,10 @@ class RedisClient(object):
 
     def put(self, proxy):
         try:
-            logging.info('PUT proxy {} INTO DB'.format(proxy))
-            proxy = self._db.lpush(self._dbkey, proxy)
+            proxies = self._db.lrange(self._dbkey, 0, self.queue_len)
+            if proxy not in proxies:
+                logging.info('PUT proxy {} INTO DB'.format(proxy))
+                proxy = self._db.lpush(self._dbkey, proxy)
         except:
             send_error_msg('pop proxy error')
 
