@@ -86,6 +86,7 @@ class Schedule(object):
         tester = ProxyTester()
         while True:
             if not conn.queue_len:
+                sleep(run_cycle)
                 logging.info('ValidProxy: There is no proxy in pool')
                 continue
             proxies = conn.get(int(math.ceil(0.5*conn.queue_len)))
