@@ -23,6 +23,7 @@ class ProxySpider(object):
             proxies.append(proxy)
         return proxies
 
+    '''
     def crawl_daili66(self, pages=5, encodeing='gb2312'):
         start_url = 'http://www.66ip.cn/{}.html'
         for page in xrange(1, pages+1):
@@ -39,8 +40,9 @@ class ProxySpider(object):
                     port = tr.select('td:nth-of-type(2)')[0].get_text().encode('utf8')
                     i = i + 1
                     yield 'http://{}:{}'.format(ip, port)
+    '''
 
-    def crawl_xici(self, pages=5):
+    def crawl_xici(self, pages=10):
         start_url = 'http://www.xicidaili.com/wt/{}'
         for page in xrange(1, pages+1):
             html = get_page(start_url.format(page))
@@ -58,6 +60,21 @@ class ProxySpider(object):
                     i = i + 1
                     yield '{}://{}:{}'.format(proto, ip, port)
 
+    def crawl_goubanjia(self, pages=10):
+        start_url = 'http://www.goubanjia.com/free/gngn/index{}.shtml'
+        for page in xrange(1, pages+1):
+            html = get_page(start_url.format(page))
+            if html:
+                bs = BeautifulSoup(html, 'lxml')
+                iptds = bs.select('td.ip')
+                for td in iptds:
+                    ip = []
+                    for t in td:
+                        if t.name not in ['span', 'div'] or not t.string or t.attrs.get('style') == 'display: none;':
+                            continue
+                        ip.append(t.string)
+                    yield 'http://{}:{}'.format(''.join(ip[0:-2]), ip[-1])
+
     def crawl_proxy360(self):
         start_url = 'http://www.proxy360.cn/Region/China'
         html = get_page(start_url)
@@ -74,21 +91,7 @@ class ProxySpider(object):
                 i = i + 1
                 yield 'http://{}:{}'.format(ip.strip(), port.strip())
 
-    def crawl_goubanjia(self):
-        start_url = 'http://www.goubanjia.com/free/gngn/index.shtml'
-        html = get_page(start_url)
-        if html:
-            bs = BeautifulSoup(html, 'lxml')
-            iptds = bs.select('td.ip')
-            for td in iptds:
-                ip = []
-                for t in td:
-                    if t.name not in ['span', 'div'] or not t.string or t.attrs.get('style') == 'display: none;':
-                        continue
-                    ip.append(t.string)
-                yield 'http://{}:{}'.format(''.join(ip[0:-2]), ip[-1])
-
 
 if __name__ == '__main__':
     ps = ProxySpider()
-    print ps.get_raw_proxies('crawl_xici')
+    print ps.get_raw_proxies('crawl_goubanjia')

@@ -1,0 +1,13 @@
+[program:proxy]
+command=/home/ptserver/.virtualenvs/proxypool/bin/python /home/ptserver/www/proxypool/run.py
+process_name=%(program_name)s
+user=ptserver
+autostart=true
+stdout_logfile=/var/log/supervisor/proxy.log
+
+
+[program:proxy_api]
+command = /home/ptserver/.virtualenvs/proxypool/bin/gunicorn api:app -b localhost:5000 -w 2
+directory = /home/ptserver/www/proxypool/proxypool
+user = ptserver
+stdout_logfile = /var/log/supervisor/proxy_api.log
