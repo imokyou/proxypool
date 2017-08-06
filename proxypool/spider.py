@@ -132,7 +132,7 @@ class ProxySpider(object):
         if html:
             bs = BeautifulSoup(html, 'lxml')
             iptrs = bs.select('#tablekit-table-22 > tbody > tr')
-            for tr in ipdivs:
+            for tr in iptrs:
                 ip = tr.select('td:nth-of-type(1)')[0].get_text().encode('utf8')
                 port = tr.select('td:nth-of-type(2)')[0].get_text().encode('utf8')
                 yield 'http://{}:{}'.format(ip.strip(), port.strip())
