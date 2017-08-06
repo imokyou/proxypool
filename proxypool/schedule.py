@@ -36,7 +36,7 @@ class ProxyTester(object):
             proxies = {
                 proxy[0:4]: proxy
             }
-            resp = requests.get(TEST_API, proxies=proxies, timeout=3)
+            resp = requests.get(TEST_API, proxies=proxies, timeout=5)
             if resp.status_code == 200:
                 logging.info('Valid proxy %s' % proxy)
                 conn.put(proxy)
@@ -74,6 +74,7 @@ class PoolAdder(object):
                 proxies = self._spider.get_raw_proxies(callback)
                 self._tester.set_row_proxies(proxies)
                 self._tester.test()
+                sleep(30)
                 if self.is_upper_threshold():
                     break
 

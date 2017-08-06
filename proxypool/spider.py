@@ -1,4 +1,5 @@
 # coding = utf8
+from time import sleep
 from downloader import get_page
 from bs4 import BeautifulSoup
 
@@ -23,7 +24,6 @@ class ProxySpider(object):
             proxies.append(proxy)
         return proxies
 
-    '''
     def crawl_daili66(self, pages=5, encodeing='gb2312'):
         start_url = 'http://www.66ip.cn/{}.html'
         for page in xrange(1, pages+1):
@@ -40,7 +40,7 @@ class ProxySpider(object):
                     port = tr.select('td:nth-of-type(2)')[0].get_text().encode('utf8')
                     i = i + 1
                     yield 'http://{}:{}'.format(ip, port)
-    '''
+            sleep(30)
 
     def crawl_xici(self, pages=10):
         start_url = 'http://www.xicidaili.com/wt/{}'
@@ -59,6 +59,7 @@ class ProxySpider(object):
                     proto = tr.select('td:nth-of-type(6)')[0].get_text().encode('utf8').lower()
                     i = i + 1
                     yield '{}://{}:{}'.format(proto, ip, port)
+            sleep(30)
 
     def crawl_goubanjia(self, pages=10):
         start_url = 'http://www.goubanjia.com/free/gngn/index{}.shtml'
@@ -74,6 +75,7 @@ class ProxySpider(object):
                             continue
                         ip.append(t.string)
                     yield 'http://{}:{}'.format(''.join(ip[0:-2]), ip[-1])
+            sleep(30)
 
     def crawl_proxy360(self):
         start_url = 'http://www.proxy360.cn/Region/China'
