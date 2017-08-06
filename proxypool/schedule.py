@@ -71,10 +71,12 @@ class PoolAdder(object):
     def add_to_queue(self):
         while self.is_lower_threshold():
             for callback in self._spider.__CrawlFunc__:
+                if callback in BLOCK_SITE:
+                    continue
                 proxies = self._spider.get_raw_proxies(callback)
                 self._tester.set_row_proxies(proxies)
                 self._tester.test()
-                sleep(30)
+                sleep(60)
                 if self.is_upper_threshold():
                     break
 

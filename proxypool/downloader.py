@@ -38,6 +38,7 @@ def get_page(url, encodeing='utf8'):
     try:
         headers = get_headers()
         resp = requests.get(url, headers=headers, timeout=DOWNLOAD_TIMEOUT)
+        print resp
         if not resp or resp.status_code != 200:
             raise Exception('request error')
     except:

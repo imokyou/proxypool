@@ -2,6 +2,7 @@
 from time import sleep
 from downloader import get_page
 from bs4 import BeautifulSoup
+from settings import *
 
 
 class ProxyMetaClass(type):
@@ -42,7 +43,7 @@ class ProxySpider(object):
                     yield 'http://{}:{}'.format(ip, port)
             sleep(30)
 
-    def crawl_xici(self, pages=10):
+    def crawl_xici(self, pages=5):
         start_url = 'http://www.xicidaili.com/wt/{}'
         for page in xrange(1, pages+1):
             html = get_page(start_url.format(page))
@@ -61,7 +62,7 @@ class ProxySpider(object):
                     yield '{}://{}:{}'.format(proto, ip, port)
             sleep(30)
 
-    def crawl_goubanjia(self, pages=10):
+    def crawl_goubanjia(self, pages=5):
         start_url = 'http://www.goubanjia.com/free/gngn/index{}.shtml'
         for page in xrange(1, pages+1):
             html = get_page(start_url.format(page))
@@ -93,7 +94,49 @@ class ProxySpider(object):
                 i = i + 1
                 yield 'http://{}:{}'.format(ip.strip(), port.strip())
 
+    def crawl_kuaidaili(self, pages=5):
+        start_url = 'http://www.kuaidaili.com/free/inha/{}/'
+        for page in xrange(1, pages+1):
+            html = get_page(start_url.format(page))
+            if html:
+                bs = BeautifulSoup(html, 'lxml')
+                iptrs = bs.select('#list > table > tbody > tr')
+                for tr in iptrs:
+                    proto = tr.select('td:nth-of-type(4)')[0].get_text().encode('utf8').lower()
+                    ip = tr.select('td:nth-of-type(1)')[0].get_text().encode('utf8')
+                    port = tr.select('td:nth-of-type(2)')[0].get_text().encode('utf8')
+                    yield '{}://{}:{}'.format(proto, ip, port)
+            sleep(30)
+
+    def crawl_getproxyjp(self, pages=1):
+        start_url = 'http://www.getproxy.jp/en/china/{}'
+        for page in xrange(1, pages+1):
+            html = get_page(start_url.format(page))
+            if html:
+                bs = BeautifulSoup(html, 'lxml')
+                i = 0
+                iptrs = bs.select('#mytable > tbody > tr')
+                for tr in iptrs:
+                    if i == 0:
+                        i = i + 1
+                        continue
+                    proto = tr.select('td:nth-of-type(7)')[0].get_text().encode('utf8').lower()
+                    ip_port = tr.select('td:nth-of-type(1)')[0].get_text().encode('utf8')
+                    i = i + 1
+                    yield '{}://{}'.format(proto, ip-port)
+            sleep(30)
+
+    def crawl_cnproxy(self):
+        start_url = 'http://cn-proxy.com/'
+        html = get_page(start_url)
+        if html:
+            bs = BeautifulSoup(html, 'lxml')
+            iptrs = bs.select('#tablekit-table-22 > tbody > tr')
+            for tr in ipdivs:
+                ip = tr.select('td:nth-of-type(1)')[0].get_text().encode('utf8')
+                port = tr.select('td:nth-of-type(2)')[0].get_text().encode('utf8')
+                yield 'http://{}:{}'.format(ip.strip(), port.strip())
 
 if __name__ == '__main__':
     ps = ProxySpider()
-    print ps.get_raw_proxies('crawl_goubanjia')
+    print ps.get_raw_proxies('crawl_cnproxy')
