@@ -119,6 +119,9 @@ class Schedule(object):
         valid_process.start()
         check_process.start()
 
+        valid_process.join()
+        check_process.join()
+
 
 if __name__ == '__main__':
     s = Schedule()
