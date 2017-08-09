@@ -36,6 +36,7 @@ def get_headers():
 
 def get_page(url, encodeing='utf8'):
     try:
+        logging.info('get proxy from {}'.format(url))
         headers = get_headers()
         resp = requests.get(url, headers=headers, timeout=DOWNLOAD_TIMEOUT)
         if not resp or resp.status_code != 200:

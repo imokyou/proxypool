@@ -3,6 +3,7 @@ from time import sleep
 from downloader import get_page
 from bs4 import BeautifulSoup
 from settings import *
+from db import RedisClient
 
 
 class ProxyMetaClass(type):
@@ -19,13 +20,16 @@ class ProxyMetaClass(type):
 class ProxySpider(object):
     __metaclass__ = ProxyMetaClass
 
+    def __init__(self):
+        self.conn = RedisClient()
+
     def get_raw_proxies(self, callback):
         proxies = []
         for proxy in eval("self.{}()".format(callback)):
             proxies.append(proxy)
         return proxies
 
-    def crawl_daili66(self, pages=5, encodeing='gb2312'):
+    def crawl_daili66(self, pages=10, encodeing='gb2312'):
         start_url = 'http://www.66ip.cn/{}.html'
         for page in xrange(1, pages+1):
             html = get_page(start_url.format(page), encodeing=encodeing)
@@ -40,10 +44,12 @@ class ProxySpider(object):
                     ip = tr.select('td:nth-of-type(1)')[0].get_text().encode('utf8')
                     port = tr.select('td:nth-of-type(2)')[0].get_text().encode('utf8')
                     i = i + 1
-                    yield 'http://{}:{}'.format(ip, port)
-            sleep(30)
+                    proxy = 'http://{}:{}'.format(ip, port)
+                    self.conn.add_source_proxy(proxy)
+                    # yield proxy
+            sleep(CRAWL_PAGE_SLEEP)
 
-    def crawl_xici(self, pages=5):
+    def crawl_xici(self, pages=10):
         start_url = 'http://www.xicidaili.com/wt/{}'
         for page in xrange(1, pages+1):
             html = get_page(start_url.format(page))
@@ -59,10 +65,12 @@ class ProxySpider(object):
                     port = tr.select('td:nth-of-type(3)')[0].get_text().encode('utf8')
                     proto = tr.select('td:nth-of-type(6)')[0].get_text().encode('utf8').lower()
                     i = i + 1
-                    yield '{}://{}:{}'.format(proto, ip, port)
-            sleep(30)
+                    proxy = '{}://{}:{}'.format(proto, ip, port)
+                    self.conn.add_source_proxy(proxy)
+                    # yield proxy
+            sleep(CRAWL_PAGE_SLEEP)
 
-    def crawl_goubanjia(self, pages=5):
+    def crawl_goubanjia(self, pages=10):
         start_url = 'http://www.goubanjia.com/free/gngn/index{}.shtml'
         for page in xrange(1, pages+1):
             html = get_page(start_url.format(page))
@@ -75,8 +83,11 @@ class ProxySpider(object):
                         if t.name not in ['span', 'div'] or not t.string or t.attrs.get('style') == 'display: none;':
                             continue
                         ip.append(t.string)
-                    yield 'http://{}:{}'.format(''.join(ip[0:-2]), ip[-1])
-            sleep(30)
+
+                    proxy = 'http://{}:{}'.format(''.join(ip[0:-2]), ip[-1])
+                    self.conn.add_source_proxy(proxy)
+                    # yield proxy
+            sleep(CRAWL_PAGE_SLEEP)
 
     def crawl_proxy360(self):
         start_url = 'http://www.proxy360.cn/Region/China'
@@ -92,9 +103,11 @@ class ProxySpider(object):
                 ip = tr.select('div span:nth-of-type(1)')[0].get_text().encode('utf8')
                 port = tr.select('div span:nth-of-type(2)')[0].get_text().encode('utf8')
                 i = i + 1
-                yield 'http://{}:{}'.format(ip.strip(), port.strip())
+                proxy = 'http://{}:{}'.format(ip.strip(), port.strip())
+                self.conn.add_source_proxy(proxy)
+                # yield proxy
 
-    def crawl_kuaidaili(self, pages=5):
+    def crawl_kuaidaili(self, pages=10):
         start_url = 'http://www.kuaidaili.com/free/inha/{}/'
         for page in xrange(1, pages+1):
             html = get_page(start_url.format(page))
@@ -105,10 +118,13 @@ class ProxySpider(object):
                     proto = tr.select('td:nth-of-type(4)')[0].get_text().encode('utf8').lower()
                     ip = tr.select('td:nth-of-type(1)')[0].get_text().encode('utf8')
                     port = tr.select('td:nth-of-type(2)')[0].get_text().encode('utf8')
-                    yield '{}://{}:{}'.format(proto, ip, port)
-            sleep(30)
 
-    def crawl_getproxyjp(self, pages=1):
+                    proxy = '{}://{}:{}'.format(proto, ip, port)
+                    self.conn.add_source_proxy(proxy)
+                    # yield proxy
+            sleep(CRAWL_PAGE_SLEEP)
+
+    def crawl_getproxyjp(self, pages=10):
         start_url = 'http://www.getproxy.jp/en/china/{}'
         for page in xrange(1, pages+1):
             html = get_page(start_url.format(page))
@@ -123,8 +139,11 @@ class ProxySpider(object):
                     proto = tr.select('td:nth-of-type(7)')[0].get_text().encode('utf8').lower()
                     ip_port = tr.select('td:nth-of-type(1)')[0].get_text().encode('utf8')
                     i = i + 1
-                    yield '{}://{}'.format(proto, ip-port)
-            sleep(30)
+
+                    proxy = '{}://{}'.format(proto, ip-port)
+                    self.conn.add_source_proxy(proxy)
+                    # yield proxy
+            sleep(CRAWL_PAGE_SLEEP)
 
     def crawl_cnproxy(self):
         start_url = 'http://cn-proxy.com/'
@@ -135,8 +154,17 @@ class ProxySpider(object):
             for tr in iptrs:
                 ip = tr.select('td:nth-of-type(1)')[0].get_text().encode('utf8')
                 port = tr.select('td:nth-of-type(2)')[0].get_text().encode('utf8')
-                yield 'http://{}:{}'.format(ip.strip(), port.strip())
+
+                proxy = 'http://{}:{}'.format(ip.strip(), port.strip())
+                self.conn.add_source_proxy(proxy)
+                # yield proxy
+
+            sleep(CRAWL_PAGE_SLEEP)
 
 if __name__ == '__main__':
     ps = ProxySpider()
-    print ps.get_raw_proxies('crawl_cnproxy')
+    for label in xrange(ps.__CrawlFuncCount__):
+        callback = ps.__CrawlFunc__[label]
+        if callback in BLOCK_SITE:
+            continue
+        eval("ps.{}()".format(callback))

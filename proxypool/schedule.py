@@ -60,7 +60,6 @@ class PoolAdder(object):
         self._threshold_upper = threshold_upper
         self._conn = RedisClient()
         self._tester = ProxyTester()
-        self._spider = ProxySpider()
 
     def is_lower_threshold(self):
         return self._conn.queue_len < self._threshold_upper
@@ -70,15 +69,13 @@ class PoolAdder(object):
 
     def add_to_queue(self):
         while self.is_lower_threshold():
-            for callback in self._spider.__CrawlFunc__:
-                if callback in BLOCK_SITE:
-                    continue
-                proxies = self._spider.get_raw_proxies(callback)
-                self._tester.set_row_proxies(proxies)
-                self._tester.test()
-                sleep(60)
-                if self.is_upper_threshold():
-                    break
+            proxies = self._conn.get_source_proxy(100)
+            self._tester.set_row_proxies(proxies)
+            self._tester.test()
+
+            if self.is_upper_threshold():
+                break
+            sleep(60)
 
 
 class Schedule(object):

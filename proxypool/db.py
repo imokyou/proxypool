@@ -18,6 +18,8 @@ class RedisClient(object):
             send_error_msg('connect redis error')
         self._dbkey = 'ipproxy'
         self._dbkey_invalid = 'ipproxy:invalid'
+        self._dbkey_source = 'ipproxy:source'
+        self._dbkey_source_exists = 'ipproxy:source:exists'
 
     def get(self, count=1):
         proxies = []
@@ -70,6 +72,24 @@ class RedisClient(object):
 
     def invalid_proxy_exists(self, proxy):
         return self._db.sismember(self._dbkey_invalid, proxy)
+
+    def add_source_proxy(self, proxy):
+        if not self._db.sismember(self._dbkey_source_exists, proxy):
+            logging.info('Save {} into source proxy'.format(proxy))
+            self._db.sadd(self._dbkey_source_exists, proxy)
+            self._db.lpush(self._dbkey_source, proxy)
+
+    def get_source_proxy(self, nums=5):
+        try:
+            proxies = []
+            for i in xrange(5):
+                proxy = self._db.rpop(self._dbkey_source)
+                proxies.append(proxy)
+                self._db.lpush(self._dbkey_source, proxy)
+        except:
+            pass
+        return proxies
+
 
 if __name__ == '__main__':
     conn = RedisClient()
